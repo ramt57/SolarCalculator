@@ -88,6 +88,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         GoogleMap.OnMyLocationClickListener, View.OnClickListener {
 
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1002;
+    private static final int MY_PERMISSIONS_REQUEST_WAKELOCK = 1003;
     private int PLACE_PICKER_REQUEST = 1;
     private GoogleApiClient mGoogleApiClient;
     private GoogleMap mMap;
@@ -109,7 +110,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         notifyReceiver = new BroadcastReciever();
         registerBroadCastReciever();
         placesModel = new PlacesModel();
-
+        wakelockpermission();
         dbhelper = new DatabaseHelper(this);
         initViews();
 
@@ -142,6 +143,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
+
+
 
     private void initViews() {
         search_box = findViewById(R.id.edt_search);
@@ -493,6 +496,34 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             ApplicationUtility.
                     setNotificationForPhaseTime(getApplicationContext(),
                             ApplicationUtility.getTimeInMiliSecond(txt_sunset.getText().toString()));
+        }
+    }
+    private void wakelockpermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WAKE_LOCK)
+                != PackageManager.PERMISSION_GRANTED) {
+            // Show rationale and request permission.
+            if (ActivityCompat.shouldShowRequestPermissionRationale(MapsActivity.this,
+                    Manifest.permission.WAKE_LOCK)) {
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Wake Lock  Needed")
+                        .setMessage("This app needs the Wake Lock  permission, please accept for app functionality")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                //Prompt the user once explanation has been shown
+                                ActivityCompat.requestPermissions(MapsActivity.this,
+                                        new String[]{Manifest.permission.WAKE_LOCK},
+                                        MY_PERMISSIONS_REQUEST_WAKELOCK);
+                            }
+                        })
+                        .create()
+                        .show();
+            } else {
+                // No explanation needed, we can request the permission.
+                ActivityCompat.requestPermissions(MapsActivity.this,
+                        new String[]{Manifest.permission.WAKE_LOCK},
+                        MY_PERMISSIONS_REQUEST_WAKELOCK);
+            }
         }
     }
 }
