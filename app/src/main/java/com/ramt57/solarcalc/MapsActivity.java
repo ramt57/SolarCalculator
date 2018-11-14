@@ -86,6 +86,7 @@ import java.util.Random;
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener,
         GoogleMap.OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationClickListener, View.OnClickListener {
+
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1002;
     private int PLACE_PICKER_REQUEST = 1;
     private GoogleApiClient mGoogleApiClient;
