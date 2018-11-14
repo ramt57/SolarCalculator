@@ -106,6 +106,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         notifyReceiver = new BroadcastReciever();
+        registerBroadCastReciever();
         placesModel = new PlacesModel();
 
         dbhelper = new DatabaseHelper(this);
