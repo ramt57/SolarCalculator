@@ -3,9 +3,12 @@ package com.ramt57.solarcalc;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -67,6 +70,7 @@ import com.google.android.gms.tasks.Task;
 import com.ramt57.solarcalc.database.DatabaseHelper;
 import com.ramt57.solarcalc.model.PhaseTimeModel;
 import com.ramt57.solarcalc.model.PlacesModel;
+import com.ramt57.solarcalc.notification.BroadcastReciever;
 import com.ramt57.solarcalc.phasetimecalculator.PhaseTimeUtils;
 import com.ramt57.solarcalc.phasetimecalculator.Zenith;
 import com.ramt57.solarcalc.utils.ApplicationUtility;
@@ -93,6 +97,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     TextView txt_sunrise, txt_sunset, txt_moonrise, txt_moonset;
     DatabaseHelper dbhelper;
     private FusedLocationProviderClient mFusedLocationClient;
+    BroadcastReciever notifyReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +105,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_maps);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        notifyReceiver = new BroadcastReciever();
         placesModel = new PlacesModel();
 
         dbhelper = new DatabaseHelper(this);
@@ -116,7 +121,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         isLocationServicesAvailable(this);
 
-        search_box = findViewById(R.id.edt_search);
         search_box.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -131,7 +135,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
-
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -139,6 +142,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void initViews() {
+        search_box = findViewById(R.id.edt_search);
         date_txt = findViewById(R.id.txt_date);
         date_txt.setText(ApplicationUtility.getCurrentDate(Calendar.getInstance()));
         findViewById(R.id.img_play).setOnClickListener(this);
@@ -200,6 +204,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
                     });
+
         }
 
         mMap.setOnMyLocationButtonClickListener(this);
@@ -308,6 +313,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             flashTextView(txt_moonrise);
             txt_moonset.setText(model.getMoonset());
             flashTextView(txt_moonset);
+
+            schedule(); /*schedule notification*/
         }
     }
 
@@ -430,7 +437,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SettingsClient client = LocationServices.getSettingsClient(context);
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
 //        task.addOnFailureListener()
-        task.addOnFailureListener((Activity)context, new OnFailureListener() {
+        task.addOnFailureListener((Activity) context, new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
                 if (e instanceof ResolvableApiException) {
@@ -441,7 +448,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         // and check the result in onActivityResult().
                         ResolvableApiException resolvable = (ResolvableApiException) e;
                         resolvable.startResolutionForResult((Activity) context,
-                               120);
+                                120);
                     } catch (IntentSender.SendIntentException sendEx) {
                         // Ignore the error.
                     }
@@ -449,12 +456,41 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
+
     /*this is just a flashing animation to blink views*/
-    public void flashTextView(TextView textView){
+    public void flashTextView(TextView textView) {
         Animation anim = new AlphaAnimation(0.0f, 1.0f);
         anim.setDuration(50); //You can manage the time of the blink with this parameter
         anim.setStartOffset(20);
         anim.setRepeatCount(0);
         textView.startAnimation(anim);
+    }
+
+    /*for Oreo you must register in activity or service */
+    public void registerBroadCastReciever() {
+        registerReceiver(
+                notifyReceiver, new IntentFilter()
+        );
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(notifyReceiver);
+    }
+
+    public void schedule() {
+        Log.w("TAA", ApplicationUtility.getTimeInMiliSecond(txt_sunrise.getText().toString()) + " d " + txt_sunrise.getText().toString());
+        /*on getting location schudele notification*/
+        if (!txt_sunrise.getText().toString().isEmpty()) {
+            ApplicationUtility.
+                    setNotificationForPhaseTime(getApplicationContext(),
+                            ApplicationUtility.getTimeInMiliSecond(txt_sunrise.getText().toString()));
+        }
+        if (!txt_sunset.getText().toString().isEmpty()) {
+            ApplicationUtility.
+                    setNotificationForPhaseTime(getApplicationContext(),
+                            ApplicationUtility.getTimeInMiliSecond(txt_sunset.getText().toString()));
+        }
     }
 }

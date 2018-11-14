@@ -25,7 +25,7 @@ public class PhaseTimeUtils {
 
     public PhaseTimeUtils(int day, int month, int year, double longitude, double lattitude) {
         this.day = day;
-        this.day = month;
+        this.month = month;
         this.year = year;
         this.longitude = longitude;
         this.lattitude = lattitude;
@@ -127,7 +127,13 @@ public class PhaseTimeUtils {
         if (localtime > 24) {
             localtime = localtime - 24;
         }
-        return localtime;
+        /*fix decimal ranges when exceded 0.60 range*/
+        int integer=(int)localtime;
+        double decimal = localtime-(int)localtime;
+        if(decimal>0.60){
+            decimal-=0.60;
+        }
+        return integer+decimal;
     }
 
     private double getUTCOffSet(Calendar date) {
