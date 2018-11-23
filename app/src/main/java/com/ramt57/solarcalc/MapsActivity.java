@@ -110,7 +110,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         notifyReceiver = new BroadcastReciever();
         registerBroadCastReciever();
         placesModel = new PlacesModel();
-        wakelockpermission();
+        wakelockpermission(); /*needed permission for jobintentservice for devices running below android oreo*/
         dbhelper = new DatabaseHelper(this);
         initViews();
 
@@ -524,6 +524,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                         new String[]{Manifest.permission.WAKE_LOCK},
                         MY_PERMISSIONS_REQUEST_WAKELOCK);
             }
+        }else{
+
         }
     }
 }
